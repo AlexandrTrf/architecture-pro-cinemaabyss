@@ -155,6 +155,7 @@ jobs:
         run: |
           cd tests/postman
           npm install
+          npm install -g newman newman-reporter-htmlextra
           npm run test:docker
 
       - name: Upload Test Reports

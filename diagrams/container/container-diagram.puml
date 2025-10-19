@@ -1,0 +1,68 @@
+﻿@startuml Container Diagram
+!define RELATIVE_INCLUDE 
+!include ../common/C4_Container.puml
+
+
+title Диаграмма контейнеров "Кинобездна"
+
+Person(User, "Пользователь системы", "Web/mobile app")
+
+Boundary("Entry", "Entry"){
+Container(APIGateway, "API Getaway", "Kong", "Маршрутизация, балансировка нагрузки, аутентификация, rate limiting, feature flags")
+}
+
+Boundary("Payments", "Payments"){
+  Container(PaymentService, "Payment Service", "REST API", "Платежный сервис")
+  System_Ext(PaymentProvider, "Платежная система", "Внешний провайдер платежей")
+  ContainerDb(PaymentsDb,"Payments Db","PostgreSQL")
+}
+
+Boundary("Movies","Movies"){
+   Container(MoviesService, "Movies Service", "REST API", "Сервис данных о видео")
+   ContainerDb(MoviesDb,"MoviesDb","PostgreSQL")
+}
+
+Boundary("Subscriptions","Subscriptions"){
+   Container(SubscriptionService, "Subscriptions Service", "REST API", "Сервис подписок")
+   ContainerDb(SubscriptionsDb,"SubscriptionsDb","PostgreSQL")
+}
+
+Boundary("Users","Users"){
+   Container(UsersService, "Users Service", "REST API", "Управление пользовательскими данными")
+   ContainerDb(UsersDb,"UsersDb","PostgreSQL")
+}
+
+Boundary("Events","Events"){
+  Container(EventsService, "Events Service", "REST API", "Сервис событий")
+  ContainerDb(Kafka,"Kafka","Message Broker")
+}
+
+Boundary("Monolith","Monolith"){
+  Container(MonolithService, "Monolith Service", "GO REST API", "Старый монолитный проект")
+  ContainerDb(MonolithDb,"Monolith Db","PostgreSQL")
+}
+
+
+Rel(User, APIGateway, "Использует", "HTTPS")
+Rel(PaymentService, PaymentProvider, "Использует")
+Rel(PaymentService, PaymentsDb, "Хранит данные", "SQL")
+Rel(MoviesService, MoviesDb, "Хранит данные", "SQL")
+Rel(SubscriptionService, SubscriptionsDb, "Хранит данные", "SQL")
+Rel(UsersService, UsersDb, "Хранит данные", "SQL")
+Rel(EventsService, Kafka, "Publisher\Consumer", "Events")
+Rel(MonolithService, MonolithDb, "Хранит данные", "SQL")
+
+Rel(APIGateway, PaymentService, "Routes to","api/payments")
+Rel(APIGateway, MoviesService, "Routes to","api/movies")
+Rel(APIGateway, SubscriptionService, "Routes to","api/subscriptions")
+Rel(APIGateway, UsersService, "Routes to","api/users")
+Rel(APIGateway, MonolithService, "Routes to","")
+
+Rel(MonolithService, Kafka, "События из легаси системы")
+Rel(PaymentService, Kafka, "События")
+Rel(MoviesService, Kafka, "События")
+Rel(SubscriptionService, Kafka, "События")
+Rel(UsersService, Kafka, "События")
+
+
+@enduml

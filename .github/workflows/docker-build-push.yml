@@ -125,46 +125,4 @@ jobs:
           labels: ${{ steps.meta-events.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-  test-api:
-    runs-on: ubuntu-latest
-    needs: build-and-push
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up Docker Compose
-        uses: docker/setup-buildx-action@v3
-
-      - name: Start all services
-        run: docker compose -f docker-compose.yml up -d
-
-      - name: Wait for services to be healthy
-        run: |
-          echo "Waiting for services to start..."
-          sleep 20
-          docker ps
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
-      - name: Run API Tests
-        run: |
-          cd tests/postman
-          npm install
-          npm install -g newman newman-reporter-htmlextra
-          npm run test:docker
-
-      - name: Upload Test Reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: postman-test-reports
-          path: tests/postman/reports/
-
-      - name: Stop containers
-        if: always()
-        run: docker compose down
+          

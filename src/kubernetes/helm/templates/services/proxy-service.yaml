@@ -24,8 +24,59 @@ spec:
         app: proxy-service
     spec:
       containers:
-      - name: proxy-service
-        ..... тут
+        - name: proxy-service
+          image: {{ .Values.proxyService.image.repository }}:{{ .Values.proxyService.image.tag }}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: {{ .Values.proxyService.service.targetPort }}
+          env:
+            - name: ASPNETCORE_URLS
+              value: "http://+:{{ .Values.proxyService.service.targetPort }}"
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+            - name: MOVIES_HOST
+              value: "movies-service"
+            - name: MOVIES_PORT
+              value: "{{ .Values.moviesService.service.targetPort }}"
+            - name: MOVIES_WEIGHT
+              value: "{{ .Values.config.moviesMigrationPercent }}"
+            - name: MONOLITH_HOST
+              value: "monolith"
+            - name: MONOLITH_PORT
+              value: "{{ .Values.monolith.service.targetPort }}"
+            - name: MONOLITH_WEIGHT
+              value: "{{ sub 100 .Values.config.moviesMigrationPercent }}"
+            - name: EVENTS_HOST
+              value: "events-service"
+            - name: EVENTS_PORT
+              value: "{{ .Values.eventsService.service.targetPort }}"
+          envFrom:
+            - configMapRef:
+                name: cinemaabyss-config
+            - secretRef:
+                name: cinemaabyss-secrets
+          resources:
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+      restartPolicy: Always
+      imagePullSecrets:
+        - name: dockerconfigjson
 ---
 apiVersion: v1
 kind: Service
@@ -38,5 +89,9 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
   selector:
-    ... и тут
+    app: proxy-service
+  ports:
+    - port: {{ .Values.proxyService.service.port }}
+      targetPort: {{ .Values.proxyService.service.targetPort }}
+  type: {{ .Values.proxyService.service.type }}
 {{- end }}

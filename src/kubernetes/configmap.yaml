@@ -11,6 +11,10 @@ data:
   DB_USER: "postgres"
 
   # Service URLs
+  MONOLITH_NAME: "monolith"
+  MONOLITH_PORT: "8080"
+  MOVIES_SERVICE_NAME: "movies-service"
+  MOVIES_SERVICE_PORT: "8081"
   MONOLITH_URL: "http://monolith:8080"
   MOVIES_SERVICE_URL: "http://movies-service:8081"
   

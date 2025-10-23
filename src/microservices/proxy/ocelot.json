@@ -1,0 +1,51 @@
+﻿{
+  "Routes": [
+    {
+      "RouteId": "movies_route",
+      "UpstreamPathTemplate": "/api/movies/{everything}",
+      "UpstreamHttpMethod": [ "GET", "PUT", "POST", "DELETE" ],
+      "DownstreamPathTemplate": "/api/movies/{everything}",
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin"
+      },
+      
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "movies-service",
+          "Port": 8081,
+          "Weight": 2
+        },
+        {
+          "Host": "monolith",
+          "Port": 8080,
+          "Weight": 1
+        }
+      ]
+    },
+    {
+      "RouteId": "events_route",
+      "UpstreamPathTemplate": "/api/events/{everything}",
+      "UpstreamHttpMethod": [ "GET", "PUT", "POST", "DELETE" ],
+      "DownstreamPathTemplate": "/api/events/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "events-service", "Port": 8082 }
+      ]
+    },
+    {
+      "RouteId": "default_route",
+      "UpstreamPathTemplate": "/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "DownstreamPathTemplate": "/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "monolith", "Port": 8080 }
+      ],
+      "Priority": 0
+    }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:8000"
+  }
+}
